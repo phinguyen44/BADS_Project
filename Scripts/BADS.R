@@ -27,6 +27,8 @@ df.test  <- read.csv("Data/BADS_WS1718_class.csv")
 #####################################################################################
 # Data exploration
 
+## TODO: MAKE SURE FACTORS ARE ORDERED CORRECTLY !!! !!! !!! 
+
 # check distribution of categorical variables (and how they might differ)
 dist.check <- function(var) {
   dist.train <- data.frame(
@@ -39,8 +41,8 @@ dist.check <- function(var) {
     full_join(dist.test, by = c("train.Var1" = "test.Var1"))
   
   dister[is.na(dister)]    <- 0
-  dister[, 2]              <- dister[, 2]/sum(dister[, 2])
-  dister[, 3]              <- dister[, 3]/sum(dister[, 3])
+  # dister[, 2]              <- round(dister[, 2]/sum(dister[, 2]), 3)
+  # dister[, 3]              <- round(dister[, 3]/sum(dister[, 3]), 3)
   dister$Difference        <- dister[, 3] - dister[, 2]
   
   names(dister$train.Var1) <- "Variable"
@@ -66,9 +68,9 @@ item_size  <- lapply(fxns, function(f) f("item_size"))
 user_title <- lapply(fxns, function(f) f("user_title"))
 user_state <- lapply(fxns, function(f) f("user_state"))
 item_id    <- lapply(fxns, function(f) f("item_id"))
+user_id    <- lapply(fxns, function(f) f("user_id"))
 
 # check distribution (numeric): item_price
-
 
 #####################################################################################
 # Data cleaning

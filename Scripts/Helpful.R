@@ -1,29 +1,31 @@
 # Helpful functions
 
 # check distribution of categorical variables (and how they might differ)
-dist.check <- function(var) {
+dist.check <- function(df.train, var) {
+  if (var == "brand_id") {df.train[[var]] <- df.train[[var]] + 100}
   dist.train <- data.frame(
     train = table(df.train[[var]])[order(table(df.train[[var]]))]
   )
   dist.test <- data.frame(
     test = table(df.test[[var]])[order(table(df.test[[var]]))]
   )
+  
   dister   <- dist.train %>% 
     full_join(dist.test, by = c("train.Var1" = "test.Var1"))
   
   dister[is.na(dister)]    <- 0
-  dister$Difference        <- dister[, 3] - dister[, 2]
+  dister$Difference        <- 2 * dister[, 3] / dister[, 2] # should be close to 1
   
   names(dister$train.Var1) <- "Variable"
   return(dister)
 }
 
 # check return rates of cat variables
-return.check <- function(var) {
+return.check <- function(df, var) {
   return.table <- as.data.frame(as.matrix.data.frame(
-    table(df.train[[var]], df.train$return)
+    table(df[[var]], df$return)
   ))
-  return.table[[var]] <- levels(df.train[[var]])
+  return.table[[var]] <- levels(df[[var]])
   return.table <- return.table %>% 
     select(var, V1, V2) %>% 
     rename(Keep = V1, Return = V2) %>% 
@@ -32,16 +34,15 @@ return.check <- function(var) {
   return(return.table)
 }
 
-num.check <- function(var) {
-  prices.df <- df.train %>% arrange(get(var))
-  tables    <- as.data.frame(as.matrix.data.frame(
-    table(prices.df[[var]], prices.df$return)
-  ))
-  tables[[var]] <- unique(prices.df[[var]])
-  tables <- tables %>% 
-    select(var, V1, V2) %>% 
-    rename(Keep = V1, Return = V2) %>% 
-    mutate(Total = Keep + Return, ReturnRate = round(Return / Total, 3))
+num.check <- function(df, var) {
+  prices.df <- df %>% arrange(get(var))
+  tables    <- as.data.frame(table(prices.df[[var]], prices.df$return))
+  tables    <- tidyr::spread(tables, Var2, Freq)
+  tables    <- tables %>% 
+    rename(Keep = '0', Return = '1') %>% 
+    mutate(Total      = Keep + Return, 
+           ReturnRate = round(Return / Total, 3),
+           Var1       = as.numeric(levels(Var1))[Var1])
   
   return(tables)
 }
@@ -57,14 +58,14 @@ discret <- function(df, numbins = 10) {
   # last value underbins
   binidx  <- sapply(binsmax, function(x) last(which(df$allsums <= x))) 
   
-  pricemax <- df$item_price[binidx]
+  pricemax <- df[,1][binidx]
   pricemax <- c(0, pricemax)
   
   df$bins  <- paste0("[0, ", pricemax[2], "]")
   
   for (i in 2:length(pricemax)) {
     for (j in 1:nrow(df)) {
-      if (df$item_price[j] > pricemax[i]) {
+      if (df[,1][j] > pricemax[i]) {
         df$bins[j] <- paste0("(", pricemax[i], ", ", pricemax[i+1], "]")
       }
     }

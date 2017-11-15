@@ -33,15 +33,16 @@ fxns.fac  <- list(dist.check = dist.check, return.check = return.check)
 fxns.num  <- list(dist.check = dist.check, return.check = num.check)
 
 # factor variables
-item_color <- lapply(fxns.fac, function(f) f("item_color"))
-item_size  <- lapply(fxns.fac, function(f) f("item_size"))
-user_title <- lapply(fxns.fac, function(f) f("user_title"))
-user_state <- lapply(fxns.fac, function(f) f("user_state"))
+item_color <- lapply(fxns.fac, function(f) f(df.train, "item_color"))
+item_size  <- lapply(fxns.fac, function(f) f(df.train, "item_size"))
+user_title <- lapply(fxns.fac, function(f) f(df.train, "user_title"))
+user_state <- lapply(fxns.fac, function(f) f(df.train, "user_state"))
 
 # numeric variables
-item_id    <- lapply(fxns.num, function(f) f("item_id"))
-user_id    <- lapply(fxns.num, function(f) f("user_id"))
-item_price <- num.check("item_price")
+item_id    <- lapply(fxns.num, function(f) f(df.train, "item_id"))
+brand_id   <- lapply(fxns.num, function(f) f(df.train, "brand_id"))
+user_id    <- lapply(fxns.num, function(f) f(df.train, "user_id"))
+item_price <- num.check(df.train, "item_price")
 
 price_disc <- discret(item_price, 10)
 
@@ -63,37 +64,62 @@ p2 <- ggplot(data = price_disc, aes(x = bins, y = ReturnRate)) +
   theme(axis.text.x = element_text(angle = 90))
 p2
 
+# TODO: Handle factors? item_id, brand_id. by frequency of purchase?
+
+
 #####################################################################################
-# Data cleaning
+# Data cleaning & imputation
 
 clean.df <- df.train %>% 
-  select(user_id, user_dob, user_reg_date, user_state, user_title,
-         order_date, delivery_date, 
-         item_id, brand_id, item_price) %>% 
-  rename()
+  rename(user_birth_date = user_dob,
+         item_brand_id   = brand_id) %>% 
+  mutate(item_id         = factor(item_id),
+         item_brand_id   = factor(item_brand_id),
+         user_id         = factor(user_id),
+         user_birth_date = ymd(user_birth_date),
+         user_reg_date   = ymd(user_reg_date),
+         order_date      = ymd(order_date),
+         delivery_date   = ymd(delivery_date), 
+         user_age        = floor(as.numeric((Sys.Date() - user_birth_date))/365),
+         days_to_deliv   = as.numeric(delivery_date - order_date),
+         days_from_open  = as.numeric(order_date - user_reg_date),
+         order_day       = factor(weekdays(order_date)),
+         order_month     = factor(months(order_date))) 
 
-clean.df <- function(df) {
-  require(dplyr)
-  
-  df <- df %>% select(-order_item_id)
-  
-  df$order_date    <- ymd(df$order_date)
-  df$delivery_date <- ymd(df$delivery_date) # treat ? as missing
-  df$user_dob      <- ymd(df$user_dob) # treat 1900-11-19 and ? as missing
-  df$user_reg_date <- ymd(df$user_reg_date)
-}
+daydf   <- return.check(clean.df, "order_day")
+monthdf <- return.check(clean.df, "order_month")
 
-# convert: item_id, brand_id, user_id, user_title to factor
-# convert: delivery_time = date.diff(delivery_date - order_date)
+delivdays <- num.check(clean.df, "days_to_deliv")
+opendays  <- num.check(clean.df, "days_from_open")
+user_age  <- num.check(clean.df, "user_age")
 
+clean.df <- clean.df %>% 
+  select(user_age, user_state, user_title,
+       days_to_deliv, days_from_open, order_day, order_month,
+       item_id, item_brand_id, item_price,
+       return)
 
-df.c <- clean.df(df.train)
+# NA values
+clean.df$days_to_deliv[clean.df$days_to_deliv < 0] <- NA
+clean.df$user_age[clean.df$user_age >= 116] <- NA
+clean.df$user_title[clean.df$user_title == "not reported"] <- NA
+
+# Imputation
+df.final <- clean.df[complete.cases(clean.df), ]
+
+# TODO: more imputation methods
+
 
 
 #####################################################################################
 # Model creation
 
+
+
+# TODO: Consider log transform of user_date
+
 # try a few candidate models
+# consider separate models for user_title to handle class imbalance issues
 
 #####################################################################################
 # Model evaluation

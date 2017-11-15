@@ -109,14 +109,14 @@ df.final <- clean.df[complete.cases(clean.df), ]
 
 # TODO: more imputation methods
 
-
-
 #####################################################################################
 # Model creation
 
-
+simple.mod <- return ~
+  
 
 # TODO: Consider log transform of user_date
+# TODO: Consider spline for age
 
 # try a few candidate models
 # consider separate models for user_title to handle class imbalance issues

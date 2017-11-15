@@ -38,7 +38,7 @@ Files and data - BADS WS17/18 project
 
 ## Features
 1. `user_age`: (numeric) age of person who purchased. use spline transform (under 40, 40-65, 65+)
-2. `user_date`: (factor) location
+2. `user_state`: (factor) location
 3. `user_title`: (factor) proxy for gender. high class imbalance. consider split models
 4. `days_to_deliv`: (numeric) difference between `delivery_date` and `order_date`. little relationship. heteroscedastic
 5. `days_from_open`: (numeric) difference between `order_date` and `user_reg_date`. small linear relationship.

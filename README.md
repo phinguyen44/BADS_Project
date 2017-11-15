@@ -46,4 +46,4 @@ Files and data - BADS WS17/18 project
 7. `order_month`: (factor) which month?
 8. `item_id`: (factor) which item?
 9. `item_brand_id`: (factor) which brand?
-10. `item_price`:
+10. `item_price`: (numeric) item price

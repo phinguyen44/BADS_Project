@@ -112,11 +112,23 @@ df.final <- clean.df[complete.cases(clean.df), ]
 #####################################################################################
 # Model creation
 
-simple.mod <- return ~
+simple.mod <- return ~ .
+better.mod <- return ~ 
+  user_age + 
+  user_state +
+  user_title + 
+  days_to_deliv + 
+  days_from_open +
+  order_day + 
+  order_month +
+  item_id + 
+  item_brand_id + 
+  item_price
   
 
 # TODO: Consider log transform of user_date
 # TODO: Consider spline for age
+# TODO: standardize numeric variables
 
 # try a few candidate models
 # consider separate models for user_title to handle class imbalance issues

@@ -13,6 +13,8 @@ Files and data - BADS WS17/18 project
 7. KNN / SVC / Extreme Random Forests
 8. [Standardization of Categorical Variables](https://stats.stackexchange.com/questions/68077/are-categorical-variables-standardized-differently-in-penalized-regression)
 9. Make a few candidate models
+10. Consider parallelization: multi-fit models, cross-validation
+11. Separate models for user_title
 
 ## Important Dates
 

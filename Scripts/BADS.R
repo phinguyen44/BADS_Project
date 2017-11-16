@@ -16,7 +16,7 @@ wd = file.path(Sys.getenv("HOME"),"/Documents/Projects/BADS_Project")
 setwd(wd)
 
 # Load packages
-needs(glmnet, caret, 
+needs(glmnet, caret, splines,
       tidyverse, magrittr, lubridate, zoo, 
       ggplot2)
 
@@ -94,10 +94,11 @@ opendays  <- num.check(clean.df, "days_from_open")
 user_age  <- num.check(clean.df, "user_age")
 
 clean.df <- clean.df %>% 
-  select(user_age, user_state, user_title,
-       days_to_deliv, days_from_open, order_day, order_month,
-       item_id, item_brand_id, item_price,
-       return)
+  select(user_id, 
+         user_age, user_state, user_title,
+         days_to_deliv, days_from_open, order_day, order_month,
+         item_id, item_brand_id, item_price, 
+         return)
 
 # NA values
 clean.df$days_to_deliv[clean.df$days_to_deliv < 0] <- NA
@@ -113,8 +114,10 @@ df.final <- clean.df[complete.cases(clean.df), ]
 # Model creation
 
 simple.mod <- return ~ .
-better.mod <- return ~ 
-  user_age + 
+
+ageknots <- c(40, 65)
+fun.mod <- return ~ 
+  ns(user_age, knots = ageknots) + 
   user_state +
   user_title + 
   days_to_deliv + 
@@ -123,12 +126,53 @@ better.mod <- return ~
   order_month +
   item_id + 
   item_brand_id + 
-  item_price
-  
+  I(log(item_price)) - 
+  user_id
 
-# TODO: Consider log transform of user_date
+vars.in <- df.final %>% 
+  select(-user_id)
+
+samplex  <- sample(1:nrow(vars.in), 10000, replace = FALSE)
+testset  <- vars.in[samplex, ]
+trainset <- vars.in[-samplex, ]
+
+testset2 <- testset %>% 
+  select(-return)
+
+matrixx   <- model.matrix(fun.mod, data = df.final)
+mod1      <- cv.glmnet(x = matrixx, y = df.final$return, family = "binomial", standardize = TRUE)
+plot(mod1.t)
+mod1.t$lambda.min
+coef(mod1.t, s = "lambda.min")
+
+newx    <-  model.matrix(test.mod, data = testset)
+
+start <- Sys.time()
+mod2    <- glm(simple.mod, data = trainset, family = binomial(link = "logit"))
+pred2 <- predict(mod2, type = "response")
+check2 <- table(predicted = round(pred2), actual = testset$return)
+mce2 <- 1 - sum(diag(check2)) / sum(check2)
+end <- Sys.time()
+end - start
+
+# TODO: fix error in model.frame.default: factor has new levels
+# https://stackoverflow.com/questions/29873178/error-in-model-frame-default-for-predict-factor-has-new-levels-for-a-cha
+# In summary, the error basically means that the model is unable to make predictions for unknown levels in the testdata that were never encountered during the training of the model.
+
+pred1 <- predict(mod1.t, newx = newx, s = "lambda.min", type = "response")
+
+test <- round(cbind(pred1, pred2))
+
+# check which is better
+check1 <- table(predicted = test[, 1], actual = testset$return)
+
+mce1 <- 1 - sum(diag(check1)) / sum(check1)
+
+# TODO: Consider log transform of item_price
 # TODO: Consider spline for age
 # TODO: standardize numeric variables
+
+# GARBAGE MODEL :(
 
 # try a few candidate models
 # consider separate models for user_title to handle class imbalance issues

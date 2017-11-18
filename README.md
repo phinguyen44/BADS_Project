@@ -1,6 +1,12 @@
 # BADS_Project
 
-Files and data - BADS WS17/18 project
+BADS WS17/18 project
+
+## Important Dates
+
+1. 01.12.2017 - Individual assignment due
+2. 05.02.2017 - Group predictions due
+3. 12.02.2017 - Final term paper due
 
 ## Notes
 
@@ -16,10 +22,6 @@ Files and data - BADS WS17/18 project
 10. Consider parallelization: multi-fit models, cross-validation, imputation methods
 11. Separate models for user_title
 12. How to handle factors with so many levels?
-
-## Important Dates
-
-1. 01.12.2017 - Individual assignment due
 
 ## Variables (what to change)
 

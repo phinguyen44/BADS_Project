@@ -10,18 +10,12 @@ BADS WS17/18 project
 
 ## Notes
 
-1. R packages to use for production: docopt, infuser/glue, magrittr
-2. R packages for imputation: MICE, Amelia
-3. R packages to try for algorithm: glmnet, splines
-4. [Handling Class Imbalance Problems](https://www.analyticsvidhya.com/blog/2016/03/practical-guide-deal-imbalanced-classification-problems/)
-5. Consider mixed interaction terms or power terms
-6. [Predicting Binary Outcomes in R](https://amunategui.github.io/binary-outcome-modeling/)
-7. KNN / SVC / Extreme Random Forests
-8. [Standardization of Categorical Variables](https://stats.stackexchange.com/questions/68077/are-categorical-variables-standardized-differently-in-penalized-regression)
-9. Make a few candidate models
-10. Consider parallelization: multi-fit models, cross-validation, imputation methods
-11. Separate models for user_title
-12. How to handle factors with so many levels?
+1. R packages for imputation: MICE, Amelia
+2. Consider mixed interaction terms or power terms
+3. [Predicting Binary Outcomes in R](https://amunategui.github.io/binary-outcome-modeling/)
+4. KNN / SVC / Extreme Random Forests
+5. Separate models for user_title
+6. How to handle factors with so many levels?
 
 ## Variables (what to change)
 

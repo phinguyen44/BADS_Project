@@ -27,6 +27,8 @@ df.test  <- read.csv("Data/BADS_WS1718_class.csv")
 #####################################################################################
 # CLEAN
 
+# TODO: Update based on BADS.R
+
 df.clean <- df.train %>% 
   rename(user_birth_date = user_dob,
          item_brand_id   = brand_id) %>% 

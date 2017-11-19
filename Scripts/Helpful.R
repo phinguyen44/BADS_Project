@@ -78,3 +78,39 @@ discret <- function(df, numbins = 10) {
   
   return(df.bins)
 }
+
+# maybe discretize brand_id by purchases
+discret2 <- function(df, numbins = 10) {
+  df <- df %>% 
+    arrange(Total) %>% 
+    mutate(allsums = cumsum(Total))
+    
+  cutoff  <- round(tail(df, 1)$allsums / numbins)
+  binsmax <- as.integer(seq(cutoff, tail(df, 1)$allsums, by = cutoff))
+  if (length(binsmax) < numbins) {binsmax <- c(binsmax, tail(df, 1)$allsums)}
+  
+  # last value underbins
+  binidx  <- sapply(binsmax, function(x) last(which(df$allsums <= x))) 
+  
+  maxval <- df$Total[binidx]
+  maxval <- c(0, maxval)
+  
+  df$bins  <- paste0("[0, ", maxval[2], "]")
+  
+  for (i in 2:length(maxval)) {
+    for (j in 1:nrow(df)) {
+      if (df$Total[j] > maxval[i]) {
+        df$bins[j] <- paste0("(", maxval[i], ", ", maxval[i+1], "]")
+      }
+    }
+  }
+  
+  df.bins <- df %>% 
+    mutate(bins = factor(bins, levels = unique(bins))) %>% 
+    group_by(bins) %>% 
+    summarize(ReturnRate = sum(Return) / sum(Total))
+  
+  return(df.bins)
+}
+
+# create a log discrete function

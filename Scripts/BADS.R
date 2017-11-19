@@ -44,7 +44,9 @@ brand_id   <- lapply(fxns.num, function(f) f(df.train, "brand_id"))
 user_id    <- lapply(fxns.num, function(f) f(df.train, "user_id"))
 item_price <- num.check(df.train, "item_price")
 
-price_disc <- discret(item_price, 10)
+price_disc <- discret(item_price, 20)
+brand_disc <- discret2(brand_id$return.check, 10)
+# TODO: Consider making groupings based on log size
 
 # check distribution (numeric): item_price
 p <- ggplot() +
@@ -64,11 +66,19 @@ p2 <- ggplot(data = price_disc, aes(x = bins, y = ReturnRate)) +
   theme(axis.text.x = element_text(angle = 90))
 p2
 
-# TODO: Handle factors? item_id, brand_id. by frequency of purchase?
-
+# check brand_disc return rates
+p3 <- ggplot(data = brand_disc, aes(x = bins, y = ReturnRate)) + 
+  geom_bar(stat = "identity") + 
+  theme_minimal() +
+  theme(panel.grid.minor = element_blank()) + 
+  theme(panel.grid.major.x = element_blank()) +
+  theme(axis.text.x = element_text(angle = 90))
+p3
 
 #####################################################################################
 # Data cleaning & imputation
+
+# TODO: add new variables (discrete item_price and discrete brand)
 
 df.clean <- df.train %>% 
   rename(user_birth_date = user_dob,
@@ -86,6 +96,7 @@ df.clean <- df.train %>%
          order_day       = factor(weekdays(order_date)),
          order_month     = factor(months(order_date))) 
 
+# additional EDA
 daydf   <- return.check(df.clean, "order_day")
 monthdf <- return.check(df.clean, "order_month")
 
@@ -97,5 +108,5 @@ df.clean <- df.clean %>%
   select(user_id, 
          user_age, user_state, user_title,
          days_to_deliv, days_from_open, order_day, order_month,
-         item_id, item_brand_id, item_price, 
+         item_price, 
          return)

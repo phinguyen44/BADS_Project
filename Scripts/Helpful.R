@@ -1,4 +1,19 @@
-# Helpful functions
+################################################################################
+# Helpful.R
+#
+################################################################################
+# Description:
+# Helpful functions designed to aid in BADS project. Mostly for data 
+# exploration.
+#
+# dist.check() - compares distribution of cat variables in training & test sets
+# return.check() - looks at return rates by category in training set
+# num.check() - looks at return rates for a numerical variable in training set 
+# discrete.bins() - organizes observations into selected # of bins
+# discrete.power() - organizes observations into bins (bins organized in size 
+# by power)
+# 
+################################################################################
 
 # check distribution of categorical variables (and how they might differ)
 dist.check <- function(df.train, var) {
@@ -14,7 +29,7 @@ dist.check <- function(df.train, var) {
     full_join(dist.test, by = c("train.Var1" = "test.Var1"))
   
   dister[is.na(dister)]    <- 0
-  dister$Difference        <- 2 * dister[, 3] / dister[, 2] # should be close to 1
+  dister$Difference        <- 2 * dister[, 3] / dister[, 2] # should be near 1
   
   names(dister$train.Var1) <- "Variable"
   return(dister)
@@ -34,6 +49,7 @@ return.check <- function(df, var) {
   return(return.table)
 }
 
+# check return rates of numeric variables
 num.check <- function(df, var) {
   prices.df <- df %>% arrange(get(var))
   tables    <- as.data.frame(table(prices.df[[var]], prices.df$return))
@@ -47,42 +63,12 @@ num.check <- function(df, var) {
   return(tables)
 }
 
-# maybe discretize price to see effects
-discret <- function(df, numbins = 10) {
+# Function creates discrete buckets based on chosen variable
+# Note that fxn will try to create numbins selected, but if some observations 
+# span multiple bins, there may be fewer bins
+discrete.bin <- function(df, variable, numbins = 10) {
   df <- df %>% 
-    mutate(allsums = cumsum(Total))
-  cutoff  <- round(tail(df, 1)$allsums / numbins)
-  binsmax <- as.integer(seq(cutoff, tail(df, 1)$allsums, by = cutoff))
-  if (length(binsmax) < numbins) {binsmax <- c(binsmax, tail(df, 1)$allsums)}
-  
-  # last value underbins
-  binidx  <- sapply(binsmax, function(x) last(which(df$allsums <= x))) 
-  
-  pricemax <- df[,1][binidx]
-  pricemax <- c(0, pricemax)
-  
-  df$bins  <- paste0("[0, ", pricemax[2], "]")
-  
-  for (i in 2:length(pricemax)) {
-    for (j in 1:nrow(df)) {
-      if (df[,1][j] > pricemax[i]) {
-        df$bins[j] <- paste0("(", pricemax[i], ", ", pricemax[i+1], "]")
-      }
-    }
-  }
-  
-  df.bins <- df %>% 
-    mutate(bins = factor(bins, levels = unique(bins))) %>% 
-    group_by(bins) %>% 
-    summarize(ReturnRate = sum(Return) / sum(Total))
-  
-  return(df.bins)
-}
-
-# maybe discretize brand_id by purchases
-discret2 <- function(df, numbins = 10) {
-  df <- df %>% 
-    arrange(Total) %>% 
+    arrange(df[[variable]]) %>% 
     mutate(allsums = cumsum(Total))
     
   cutoff  <- round(tail(df, 1)$allsums / numbins)
@@ -92,14 +78,14 @@ discret2 <- function(df, numbins = 10) {
   # last value underbins
   binidx  <- sapply(binsmax, function(x) last(which(df$allsums <= x))) 
   
-  maxval <- df$Total[binidx]
+  maxval <- df[[variable]][binidx]
   maxval <- c(0, maxval)
   
   df$bins  <- paste0("[0, ", maxval[2], "]")
   
   for (i in 2:length(maxval)) {
     for (j in 1:nrow(df)) {
-      if (df$Total[j] > maxval[i]) {
+      if (df[[variable]][j] > maxval[i]) {
         df$bins[j] <- paste0("(", maxval[i], ", ", maxval[i+1], "]")
       }
     }
@@ -113,4 +99,32 @@ discret2 <- function(df, numbins = 10) {
   return(df.bins)
 }
 
-# create a log discrete function
+# create a discrete function that follows power
+discrete.power <- function(df, variable, numbins = 10, powerval = 5) {
+  df <- df %>% 
+    arrange(df[[variable]])
+  
+  cutoffs <- powerval ^ (1:numbins)
+  if(max(cutoffs) > max(df[[variable]])){
+    message("Bin values exceeds total items in group. Truncating # of bins.")
+   cutoffs <- cutoffs[cutoffs < max(df[[variable]])] 
+  }
+  groupings    <- c(0, cutoffs, max(df[[variable]]))
+  
+  df$bins  <- paste0("[0, ", groupings[2], "]")
+  
+  for (i in 2:length(groupings)) {
+    for (j in 1:nrow(df)) {
+      if (df[[variable]][j] > groupings[i]) {
+        df$bins[j] <- paste0("(", groupings[i], ", ", groupings[i+1], "]")
+      }
+    }
+  }
+  
+  df.bins <- df %>% 
+    mutate(bins = factor(bins, levels = unique(bins))) %>% 
+    group_by(bins) %>% 
+    summarize(ReturnRate = sum(Return) / sum(Total))
+  
+  return(df.bins)
+}

@@ -1,13 +1,13 @@
-#####################################################################################
+################################################################################
 # BADS-Model.R
 #
-#####################################################################################
+################################################################################
 # Description:
-# BADS project - model only
+# BADS project - use cleaned data set, do minor cleaning, and build model
 # 
-#####################################################################################
+################################################################################
 
-#####################################################################################
+################################################################################
 # LOAD DATA
 rm(list = ls())
 
@@ -16,18 +16,18 @@ wd = file.path(Sys.getenv("HOME"),"/Documents/Projects/BADS_Project")
 setwd(wd)
 
 # Load packages
-needs(glmnet, caret, splines,
-      tidyverse, magrittr, lubridate, zoo, 
-      ggplot2)
+needs(glmnet, caret, splines, broom, data.table, 
+      mice, tidyverse, lubridate, ggplot2, grid, gridExtra, scales,
+      ROCR)
+
+source("Scripts/Helpful.R")
 
 # Read data
 df.train <- read.csv("Data/BADS_WS1718_known.csv")
 df.test  <- read.csv("Data/BADS_WS1718_class.csv")
 
-#####################################################################################
+################################################################################
 # CLEAN
-
-# TODO: Update based on BADS.R
 
 df.clean <- df.train %>% 
   rename(user_birth_date = user_dob,
@@ -39,15 +39,19 @@ df.clean <- df.train %>%
          user_reg_date   = ymd(user_reg_date),
          order_date      = ymd(order_date),
          delivery_date   = ymd(delivery_date), 
-         user_age        = floor(as.numeric((Sys.Date() - user_birth_date))/365),
+         user_age        = floor(
+           as.numeric((Sys.Date() - user_birth_date))/365),
          days_to_deliv   = as.numeric(delivery_date - order_date),
          days_from_open  = as.numeric(order_date - user_reg_date),
          order_day       = factor(weekdays(order_date)),
          order_month     = factor(months(order_date))) %>% 
-  select(user_id, 
-         user_age, user_state, user_title,
-         days_to_deliv, days_from_open, order_day, order_month,
-         item_id, item_brand_id, item_price, return)
+  select(user_age, user_state, user_title,
+         days_to_deliv, order_day, order_month,
+         item_price, 
+         return)
+
+################################################################################
+# IMPUTATION
 
 # NA values
 df.clean$days_to_deliv[df.clean$days_to_deliv < 0] <- NA
@@ -57,76 +61,101 @@ df.clean$user_title[df.clean$user_title == "not reported"] <- NA
 # Imputation
 df.final <- df.clean[complete.cases(df.clean), ]
 
-#####################################################################################
-# Model creation
+# Imputation via random sample
+df.final2 <- df.clean
 
-simple.mod <- return ~ .
+samplefxn <- function(df, var) {
+  idx <- is.na(df[[var]])
+  len <- sum(idx)
+  
+  values    <- sample(df[!idx, var], size = len, replace = TRUE)
+  return(values)
+}
 
-ageknots <- c(40, 65)
-fun.mod <- return ~ 
-  ns(user_age, knots = ageknots) + 
-  user_state +
-  user_title + 
-  days_to_deliv + 
-  days_from_open +
-  order_day + 
-  order_month +
-  item_id + 
-  item_brand_id + 
-  I(log(item_price)) - 
-  user_id
+df.final2$user_age[is.na(df.final2$user_age)]           <- samplefxn(
+  df.final2, "user_age")
+df.final2$days_to_deliv[is.na(df.final2$days_to_deliv)] <- samplefxn(
+  df.final2, "days_to_deliv")
+df.final2$user_title[is.na(df.final2$user_title)]       <- samplefxn(
+  df.final2, "user_title")
 
-vars.in <- df.final %>% 
-  select(-user_id)
+# DIFFERENT IMPUTATION METHODS GIVE WILDLY DIFFERENT RESULTS
 
-samplex  <- sample(1:nrow(vars.in), 10000, replace = FALSE)
-testset  <- vars.in[samplex, ]
-trainset <- vars.in[-samplex, ]
+################################################################################
+# MODEL CREATION (first pass)
 
-testset2 <- testset %>% 
-  select(-return)
+# TODO: Try different data sets / models
 
-matrixx   <- model.matrix(fun.mod, data = df.final)
-mod1      <- cv.glmnet(x = matrixx, y = df.final$return, family = "binomial", standardize = TRUE)
-plot(mod1.t)
-mod1.t$lambda.min
-coef(mod1.t, s = "lambda.min")
+mod <- return ~ . + order_day*order_month - order_day - order_month
+# mod <- return ~ .
+# mod <- return ~ . - order_day - order_month
 
-newx    <-  model.matrix(test.mod, data = testset)
+# initial sample
+samplex    <- sample(1:nrow(df.final), 10000, replace = FALSE)
+testset    <- df.final[samplex, ]
+trainset   <- df.final[-samplex, ]
+trainset.x <- trainset %>% select(-return)
 
-start <- Sys.time()
-mod2    <- glm(simple.mod, data = trainset, family = binomial(link = "logit"))
-pred2 <- predict(mod2, type = "response")
-check2 <- table(predicted = round(pred2), actual = testset$return)
-mce2 <- 1 - sum(diag(check2)) / sum(check2)
-end <- Sys.time()
-end - start
+# Build a GLM model
+final <- build.glm(mod, trainset, testset, alpha = 1)
 
-# TODO: fix error in model.frame.default: factor has new levels
-# https://stackoverflow.com/questions/29873178/error-in-model-frame-default-for-predict-factor-has-new-levels-for-a-cha
-# In summary, the error basically means that the model is unable to make predictions for unknown levels in the testdata that were never encountered during the training of the model.
+# View results
+p <- ggplot(data = final$Results, aes(prob, color = as.factor(actual))) + 
+  geom_density(size = 1) +
+  geom_vline(aes(xintercept = 0.5), color = "blue") + 
+  labs(title = "Training Set Predicted Score") + 
+  theme_minimal() +
+  theme(panel.grid.minor = element_blank()) + 
+  theme(panel.grid.major.x = element_blank())
+p
 
-pred1 <- predict(mod1.t, newx = newx, s = "lambda.min", type = "response")
+final$ClassTable
+final$MCE
 
-test <- round(cbind(pred1, pred2))
+# TODO: Solve FNR issues
+# false negative means we predict they don't return, but they do
+# false positive means we predict they return, but they don't
 
-# check which is better
-check1 <- table(predicted = test[, 1], actual = testset$return)
+# TODO: separate models for user_title to handle class imbalance issues
 
-mce1 <- 1 - sum(diag(check1)) / sum(check1)
+################################################################################
+# CROSS-VALIDATION
 
-# TODO: Consider log transform of item_price
-# TODO: Consider spline for age
-# TODO: standardize numeric variables
+# TODO: cross-validation
 
-# GARBAGE MODEL :(
-
-# try a few candidate models
-# consider separate models for user_title to handle class imbalance issues
-
-#####################################################################################
+################################################################################
 # Model evaluation
 
-# ROC curve (after doing training / test set)
-# 
-# do cross-validation?
+# ROC curve (determine optimal cutoff point)
+
+# TODO: See if this actually works...
+
+# get average penalties for fp and fn
+final$Results$Class <- with(data = final$Results, ifelse(
+  actual == result & actual == 1, "TP", ifelse(
+    actual == result & actual == 0, "TN", ifelse(
+      actual != result & actual == 1, "FN", "FP") 
+    )
+  ) 
+)
+
+final$Results <- final$Results %>% 
+  bind_cols(testset) %>% 
+  select(prob, actual, result, Class,
+         item_price)
+
+penalties <- final$Results %>% 
+  group_by(Class) %>% 
+  summarize(averages = mean(item_price))
+
+fp_pen <- penalties$averages[penalties$Class == "FP"]
+fn_pen <- penalties$averages[penalties$Class == "FN"]
+
+cost_fn <- round(0.5*(3 + 0.1*fn_pen))
+cost_fp <- round(0.5*fp_pen)
+
+# find best cutoff
+graphics.off()
+roc_info <- ROCInfo(data = final$Results, predict = "prob", 
+                    actual = "actual", cost.fp = 1, cost.fn = 1)
+grid.draw(roc_info$plot)

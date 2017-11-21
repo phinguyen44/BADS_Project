@@ -8,14 +8,23 @@ BADS WS17/18 project
 2. 05.02.2017 - Group predictions due
 3. 12.02.2017 - Final term paper due
 
+## Links
+
+1. [Logistic Regression for Unbalanced Sets](http://ethen8181.github.io/machine-learning/unbalanced/unbalanced.html)
+2. [Predicting Binary Outcomes in R](https://amunategui.github.io/binary-outcome-modeling/)
+3. [Imputation using MICE](https://datascienceplus.com/imputing-missing-data-with-r-mice-package/)
+
 ## Notes
 
 1. R packages for imputation: MICE, Amelia
 2. Consider mixed interaction terms or power terms
-3. [Predicting Binary Outcomes in R](https://amunategui.github.io/binary-outcome-modeling/)
-4. KNN / SVC / Extreme Random Forests / Gradient Boost (GBM)
-5. Separate models for user_title
-6. How to handle factors with so many levels? - add shrinkage with a penalty, use random forest (which should natively handle categorical values)
+3. KNN / SVC / Extreme Random Forests (can natively handle categorical variables) / Gradient Boost (GBM)
+4. Separate models for user_title
+5. Maybe group brand_id by return rates
+6. Try different cutoff values? or penalties for FPR or FNR? FPR is worse because of lost sale
+7. Look at orders of same item within same order.
+8. Parallelization: Imputation, Different Models, Cross-Validation?
+9. Add in "true value" function
 
 ## Variables (what to change)
 
@@ -33,7 +42,7 @@ BADS WS17/18 project
 12. `user_reg_date` is a date. consider changing to "length of account" and "time between open and order
 
 ## Features
-1. `user_age`: (numeric) age of person who purchased. use spline transform (under 40, 40-65, 65+)
+1. `user_age`: (numeric) age of person who purchased. use spline transform? (under 40, 40-65, 65+)
 2. `user_state`: (factor) location
 3. `user_title`: (factor) proxy for gender. high class imbalance. consider split models
 4. `days_to_deliv`: (numeric) difference between `delivery_date` and `order_date`. little relationship. heteroscedastic

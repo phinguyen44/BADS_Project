@@ -85,6 +85,8 @@ p2
 
 # TODO: add new variables (discrete item_price, discrete age, brand_id)
 
+# discretize price because otherwise it's too strong of a var in model
+
 df.clean <- df.train %>% 
   rename(user_birth_date = user_dob,
          item_brand_id   = brand_id) %>% 
@@ -112,8 +114,6 @@ delivdays <- num.check(df.clean, "days_to_deliv")
 user_age  <- num.check(df.clean, "user_age")
 
 summary(df.clean)
-
-# wth are people buying in march?
 
 df.clean <- df.clean %>% 
   select(user_age, user_state, user_title,

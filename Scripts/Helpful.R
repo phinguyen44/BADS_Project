@@ -143,6 +143,7 @@ build.glm <- function(mod, trainset, testset, alpha) {
   # Make prediction
   new.x <- model.matrix(mod, data = testset)
   pred  <- predict(mod1, newx = new.x, s = "lambda.1se", type = "response")
+  
   test  <- data.frame(pred, testset$return, round(pred))
   names(test) <- c("prob", "actual", "result")
   
@@ -150,7 +151,32 @@ build.glm <- function(mod, trainset, testset, alpha) {
   check1 <- table(predicted = test[, 3], actual = testset$return)
   mce1   <- 1 - sum(diag(check1)) / sum(check1)
   
-  return(list(Coef = coefff, Results = test, ClassTable = check1, MCE = mce1))
+  # GET FPR / FNR
+  test$Class <- with(data = test, ifelse(
+    actual == result & actual == 1, "TP", ifelse(
+      actual == result & actual == 0, "TN", ifelse(
+        actual != result & actual == 1, "FN", "FP")
+      )
+    ) 
+  )
+  
+  test <- test %>% 
+    bind_cols(testset) %>% 
+    select(prob, actual, result, Class,
+           item_price)
+  
+  FPR <- test %>% 
+    filter(actual == 0) %>% 
+    summarize(FPR = sum(result) / n()) %>% 
+    as.numeric()
+  
+  FNR <- test %>% 
+    filter(actual == 1) %>% 
+    summarize(FNR = (n() - sum(result)) / n()) %>% 
+    as.numeric()
+  
+  return(list(mod = mod1, Coef = coefff, Results = test,
+              ClassTable = check1, FPR = FPR, FNR = FNR, MCE = mce1))
 }
 
 # ROCINFO package from: http://ethen8181.github.io/machine-learning/unbalanced/unbalanced.html#interpretation-and-reporting

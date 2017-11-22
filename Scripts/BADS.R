@@ -44,7 +44,7 @@ brand_id   <- lapply(fxns.num, function(f) f(df.train, "brand_id"))
 user_id    <- lapply(fxns.num, function(f) f(df.train, "user_id"))
 item_price <- num.check(df.train, "item_price")
 
-price_disc  <- discrete.bin(item_price, variable = "Var1", 40)
+price_disc  <- discrete.bin(item_price, variable = "Var1", 10)
 
 # check distribution (numeric): item_price
 p <- ggplot() +
@@ -83,9 +83,11 @@ p2
 ################################################################################
 # Data cleaning & imputation
 
-# TODO: add new variables (discrete item_price, discrete age, brand_id)
+# TODO: discretize price because otherwise it's too strong of a var in model
 
-# discretize price because otherwise it's too strong of a var in model
+# TODO: Just a thought. Can days to deliv be included if a user would be shown
+# a message to prevent a purchase in the cart stage? Meaning before a purchase
+# is made?
 
 df.clean <- df.train %>% 
   rename(user_birth_date = user_dob,
@@ -102,21 +104,70 @@ df.clean <- df.train %>%
          days_to_deliv   = as.numeric(delivery_date - order_date),
          days_from_open  = as.numeric(order_date - user_reg_date),
          order_day       = factor(weekdays(order_date)),
-         order_month     = factor(months(order_date))) 
+         order_month     = factor(months(order_date)))
 
 # additional EDA
-# TODO: do month/doy variables pass the sanity check
 daydf   <- return.check(df.clean, "order_day")
 monthdf <- return.check(df.clean, "order_month")
 
 delivdays <- num.check(df.clean, "days_to_deliv")
-# opendays  <- num.check(df.clean, "days_from_open")
+opendays  <- num.check(df.clean, "days_from_open")
 user_age  <- num.check(df.clean, "user_age")
 
 summary(df.clean)
 
-df.clean <- df.clean %>% 
-  select(user_age, user_state, user_title,
-         days_to_deliv, order_day, order_month,
-         item_price, 
+################################################################################
+# IMPUTATION
+
+# NA values
+df.clean$days_to_deliv[df.clean$days_to_deliv < 0] <- NA
+df.clean$user_age[df.clean$user_age >= 116] <- NA
+df.clean$user_title[df.clean$user_title == "not reported"] <- NA
+
+# Imputation via remove NA
+# df.final <- df.clean[complete.cases(df.clean), ]
+
+# Imputation via random sample for categorical and mean for numeric
+df.final <- df.clean
+
+df.final$user_age[is.na(df.final$user_age)]           <- samplefxn(
+  df.final, "user_age", "mean")
+df.final$days_to_deliv[is.na(df.final$days_to_deliv)] <- samplefxn(
+  df.final, "days_to_deliv", "mean")
+df.final$user_title[is.na(df.final$user_title)]       <- samplefxn(
+  df.final, "user_title", "sample")
+
+# TODO: DIFFERENT IMPUTATION METHODS GIVE WILDLY DIFFERENT RESULTS
+
+################################################################################
+# Final clean
+
+# additional EDA
+daydf     <- return.check(df.final, "order_day")
+monthdf   <- return.check(df.final, "order_month")
+
+delivdays <- num.check(df.final, "days_to_deliv")
+user_age  <- num.check(df.final, "user_age")
+
+age_disc  <- discrete.bin(user_age, variable = "Var1", 5)
+
+p5 <- ggplot(data = age_disc, aes(x = bins, y = ReturnRate)) + 
+  geom_bar(stat = "identity") + 
+  theme_minimal() +
+  theme(panel.grid.minor = element_blank()) + 
+  theme(panel.grid.major.x = element_blank()) +
+  theme(axis.text.x = element_text(angle = 90))
+p5
+
+# Add discrete item_price and user_age
+df.final$item_price_d <- assign.bins(df.final, price_disc, "item_price")
+df.final$user_age_d   <- assign.bins(df.final, age_disc, "user_age")
+
+df.final <- df.final %>% 
+  select(user_age_d, user_state, user_title,
+         days_to_deliv, days_from_open, order_day, order_month,
+         item_price_d,
          return)
+
+keep <- c("df.train", "df.test", "df.final", "price_disc", "age_disc")
+rm(list = ls()[!(ls() %in% keep)])

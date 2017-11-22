@@ -12,8 +12,12 @@
 # discrete.bins() - organizes observations into selected # of bins
 # discrete.power() - organizes observations into bins (bins organized in size 
 # by power)
+# assign.bins() - creates bins based off bins created in discrete.bins()
+# samplefxn() - imputation fxn (misnomer)
 # 
 # build.glm() - builds predictions and classification table for glm model
+# 
+# TODO: Create a general "cleaning" function
 # 
 ################################################################################
 
@@ -131,6 +135,32 @@ discrete.power <- function(df, variable, numbins = 10, powerval = 5) {
   return(df.bins)
 }
 
+# Create buckets in dataset
+assign.bins <- function(df, buckets, variable) {
+  start    <- unlist(gregexpr(buckets$bins, pattern = ", "))
+  end      <- unlist(gregexpr(buckets$bins, pattern = "]"))
+  ceilings <- c(0, as.numeric(substr(buckets$bins, start + 2, end - 1)))
+  
+  # set arbitrarily large ceiling
+  ceilings[length(ceilings)] <- 99999
+  
+  grouping <- cut(df[[variable]], ceilings, include.lowest = TRUE)
+  return(grouping)
+}
+
+# imputation
+samplefxn <- function(df, var, type) {
+  idx <- is.na(df[[var]])
+  len <- sum(idx)
+  
+  values <- switch(type,
+                   sample = sample(df[!idx, var], size = len, replace = TRUE),
+                   mean   = rep(round(mean(df[[var]], na.rm = TRUE)), 
+                                times = len))
+  
+  return(values)
+}
+
 # build glm model
 build.glm <- function(mod, trainset, testset, alpha) { 
   matrix.x  <- model.matrix(mod, data = trainset)
@@ -162,8 +192,7 @@ build.glm <- function(mod, trainset, testset, alpha) {
   
   test <- test %>% 
     bind_cols(testset) %>% 
-    select(prob, actual, result, Class,
-           item_price)
+    select(prob, actual, result, Class)
   
   FPR <- test %>% 
     filter(actual == 0) %>% 

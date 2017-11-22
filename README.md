@@ -25,6 +25,7 @@ BADS WS17/18 project
 7. Look at orders of same item within same order.
 8. Parallelization: Imputation, Different Models, Cross-Validation?
 9. Add in "true value" function
+10. Include # purchases?
 
 ## Variables (what to change)
 

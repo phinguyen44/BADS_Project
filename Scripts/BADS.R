@@ -16,9 +16,10 @@ wd = file.path(Sys.getenv("HOME"),"/Documents/Projects/BADS_Project")
 setwd(wd)
 
 # Load packages
-needs(glmnet, caret, splines,
-      tidyverse, magrittr, lubridate, zoo, 
-      ggplot2)
+# install.packages("needs")
+# library(needs) # needs is utility that installs and loads missing packages
+needs(glmnet, caret, splines, 
+      tidyverse, lubridate, ggplot2)
 
 source("Scripts/Helpful.R")
 
@@ -120,8 +121,8 @@ summary(df.clean)
 # IMPUTATION
 
 # NA values
-df.clean$days_to_deliv[df.clean$days_to_deliv < 0] <- NA
-df.clean$user_age[df.clean$user_age >= 116] <- NA
+df.clean$days_to_deliv[df.clean$days_to_deliv < 0]         <- NA
+df.clean$user_age[df.clean$user_age >= 116]                <- NA
 df.clean$user_title[df.clean$user_title == "not reported"] <- NA
 
 # Imputation via remove NA

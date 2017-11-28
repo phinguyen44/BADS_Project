@@ -1,6 +1,8 @@
 ################################################################################
 # Helpful.R
 #
+# Phi Nguyen: phi.nguyen@outlook.com
+#
 ################################################################################
 # Description:
 # Helpful functions designed to aid in BADS project. Mostly for data 

@@ -11,7 +11,6 @@ BADS WS17/18 project
 ## Links
 
 1. [Logistic Regression for Unbalanced Sets](http://ethen8181.github.io/machine-learning/unbalanced/unbalanced.html)
-2. [Predicting Binary Outcomes in R](https://amunategui.github.io/binary-outcome-modeling/)
 3. [Imputation using MICE](https://datascienceplus.com/imputing-missing-data-with-r-mice-package/)
 
 ## Notes
@@ -22,10 +21,9 @@ BADS WS17/18 project
 4. Separate models for user_title
 5. Maybe group brand_id by return rates
 6. Try different cutoff values? or penalties for FPR or FNR? FPR is worse because of lost sale
-7. Look at orders of same item within same order.
+7. Look at orders of same item within same order. Or # of purchases.
 8. Parallelization: Imputation, Different Models, Cross-Validation?
-9. Add in "true value" function
-10. Include # purchases?
+9. [Platt scaling](https://en.wikipedia.org/wiki/Platt_scaling) to convert outputs into a probabilistic distribution.
 
 ## Variables (what to change)
 

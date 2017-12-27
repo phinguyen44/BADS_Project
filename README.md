@@ -8,20 +8,16 @@ BADS WS17/18 project
 2. 05.02.2017 - Group predictions due
 3. 12.02.2017 - Final term paper due
 
-## Links
-
-1. [Logistic Regression for Unbalanced Sets](http://ethen8181.github.io/machine-learning/unbalanced/unbalanced.html)
-3. [Imputation using MICE](https://datascienceplus.com/imputing-missing-data-with-r-mice-package/)
-
 ## Notes
 
 1. Consider mixed interaction terms or power terms (for non-linear relationships)
 2. Separate models for user_title
-3. **Models to try**: Random Forests (can natively handle categorical variables), ANN, Adaboost or [Gradient Boosting](https://blog.exploratory.io/introduction-to-extreme-gradient-boosting-in-exploratory-7bbec554ac7) (xgboost)
+3. [Imputation using MICE](https://datascienceplus.com/imputing-missing-data-with-r-mice-package/)
+4. **Models to try**: Random Forests (can natively handle categorical variables), ANN, Adaboost or [Gradient Boosting](https://blog.exploratory.io/introduction-to-extreme-gradient-boosting-in-exploratory-7bbec554ac7) (xgboost)
 5. **Variable selection**: Consider creating a variable based on return rate (Weight of Evidence), or parse orders with same item (is it likely that a message will prevent their return?)
 6. Try different cutoff values? or penalties for FPR or FNR? FPR is worse because of lost sale
-8. **Parallelization**: Models, Metaparameter tuning, cross-validation
-9. [Platt scaling](https://en.wikipedia.org/wiki/Platt_scaling) to convert outputs into a probabilistic distribution
+7. **Parallelization**: Models, Metaparameter tuning, cross-validation
+8. [Platt scaling](https://en.wikipedia.org/wiki/Platt_scaling) to convert outputs into a probabilistic distribution
 
 ## Variables (what to change)
 

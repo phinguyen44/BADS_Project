@@ -15,15 +15,13 @@ BADS WS17/18 project
 
 ## Notes
 
-1. R packages for imputation: MICE, Amelia
-2. Consider mixed interaction terms or power terms
-3. KNN / SVC / Extreme Random Forests (can natively handle categorical variables) / Gradient Boost (GBM)
-4. Separate models for user_title
-5. Maybe group brand_id by return rates
+1. Consider mixed interaction terms or power terms (for non-linear relationships)
+2. Separate models for user_title
+3. **Models to try**: Extreme Random Forests (can natively handle categorical variables), ANN, SVM, Adaboost or Gradient Boosting
+5. **Variable selection**: Consider creating a variable based on return rate (Weight of Evidence), or parse orders with same item (is it likely that a message will prevent their return?)
 6. Try different cutoff values? or penalties for FPR or FNR? FPR is worse because of lost sale
-7. Look at orders of same item within same order. Or # of purchases.
-8. Parallelization: Imputation, Different Models, Cross-Validation?
-9. [Platt scaling](https://en.wikipedia.org/wiki/Platt_scaling) to convert outputs into a probabilistic distribution.
+8. **Parallelization**: Models, Metaparameter tuning, cross-validation
+9. [Platt scaling](https://en.wikipedia.org/wiki/Platt_scaling) to convert outputs into a probabilistic distribution
 
 ## Variables (what to change)
 
@@ -38,15 +36,15 @@ BADS WS17/18 project
 9. `user_title` is a factor but high class imbalance, follows same distribution and appears to be decent signal
 10. `user_dob` is date of birth. consider discretizing and removing bad values (impute?)
 11. `user_state` is a factor. follows same distribution and appears to be decent signal
-12. `user_reg_date` is a date. consider changing to "length of account" and "time between open and order
+12. `user_reg_date` is a date. consider changing to "length of account" and "time between open and order"
 
 ## Features
-1. `user_age`: (numeric) age of person who purchased. use spline transform? (under 40, 40-65, 65+)
+1. `user_age`: (numeric) age of person who purchased. consider discretization
 2. `user_state`: (factor) location
 3. `user_title`: (factor) proxy for gender. high class imbalance. consider split models
-4. `days_to_deliv`: (numeric) difference between `delivery_date` and `order_date`. little relationship. heteroscedastic
+4. `days_to_deliv`: (numeric) difference between `delivery_date` and `order_date`. little relationship. is possible not a relevant metric based on assignment description
 5. `days_from_open`: (numeric) difference between `order_date` and `user_reg_date`. small linear relationship.
 6. `order_day`: (factor) which weekday?
 7. `order_month`: (factor) which month?
-9. `item_brand_id`: (factor) which brand?
+9. `item_brand_id`: (factor) which brand? consider using WOE?
 10. `item_price`: (numeric) item price

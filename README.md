@@ -10,17 +10,29 @@ BADS WS17/18 project
 
 ## Notes
 
-1. Consider mixed interaction terms or power terms (for non-linear relationships)
-2. Separate models for user_title
-3. [Imputation using MICE](https://datascienceplus.com/imputing-missing-data-with-r-mice-package/)
-4. **Models to try**: 
+### Prepare Data
+
+1. Data Imputation: [Imputation using MICE](https://datascienceplus.com/imputing-missing-data-with-r-mice-package/)
+2. Feature Selection: Consider creating a variable based on return rate (Weight of Evidence), or parse orders with same item (is it likely that a message will prevent their return?)
+3. Consider mixed interaction terms or power terms (for non-linear relationships) - *Is this necessary for non-regression-based models?*
+
+### Build Model
+
+1. Consider separate models for user_title
+2. **Models to try**: 
     - Random Forests w/ Platt Scaling (can natively handle categorical variables)
     - ANN
     - [Gradient Boosted Trees](http://xgboost.readthedocs.io/en/latest/model.html#why-introduce-the-general-principle) (xgboost)
-5. **Variable selection**: Consider creating a variable based on return rate (Weight of Evidence), or parse orders with same item (is it likely that a message will prevent their return?)
-6. Try different cutoff values? or penalties for FPR or FNR? FPR is worse because of lost sale
-7. **Parallelization**: Models, Metaparameter tuning, cross-validation
-8. [Platt scaling](http://danielnee.com/2014/10/calibrating-classifier-probabilties/) to convert outputs into a probabilistic distribution. Additional resource [here](https://www.analyticsvidhya.com/blog/2016/07/platt-scaling-isotonic-regression-minimize-logloss-error/)
+3. **Parallelization**: Models, Metaparameter tuning, cross-validation
+4. [Platt scaling](http://danielnee.com/2014/10/calibrating-classifier-probabilties/) to convert outputs into a probabilistic distribution. Additional resource [here](https://www.analyticsvidhya.com/blog/2016/07/platt-scaling-isotonic-regression-minimize-logloss-error/)
+
+### Predict
+
+1. Cross-validation techniques
+
+### Evaluate
+
+1. Try different cutoff values? or penalties for FPR or FNR? FPR is worse because of lost sale
 
 ## Variables (what to change)
 

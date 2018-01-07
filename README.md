@@ -13,7 +13,7 @@ BADS WS17/18 project
 1. Consider mixed interaction terms or power terms (for non-linear relationships)
 2. Separate models for user_title
 3. [Imputation using MICE](https://datascienceplus.com/imputing-missing-data-with-r-mice-package/)
-4. **Models to try**: Random Forests or Boosted Trees w/ Platt Scaling (can natively handle categorical variables), ANN, Adaboost or [Gradient Boosting](https://blog.exploratory.io/introduction-to-extreme-gradient-boosting-in-exploratory-7bbec554ac7) (xgboost)
+4. **Models to try**: Random Forests or Boosted Trees w/ Platt Scaling (can natively handle categorical variables), ANN, Adaboost or [Gradient Boosting](http://xgboost.readthedocs.io/en/latest/model.html#why-introduce-the-general-principle) (xgboost)
 5. **Variable selection**: Consider creating a variable based on return rate (Weight of Evidence), or parse orders with same item (is it likely that a message will prevent their return?)
 6. Try different cutoff values? or penalties for FPR or FNR? FPR is worse because of lost sale
 7. **Parallelization**: Models, Metaparameter tuning, cross-validation

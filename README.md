@@ -32,7 +32,7 @@ BADS WS17/18 project
 
 ### Evaluate
 
-1. Try different cutoff values? or penalties for FPR or FNR? FPR is worse because of lost sale
+1. Log loss error or Brier score or custom penalty function
 
 ## Variables (what to change)
 

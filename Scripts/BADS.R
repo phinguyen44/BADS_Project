@@ -30,7 +30,7 @@ df.train <- read.csv("Data/BADS_WS1718_known.csv")
 df.test  <- read.csv("Data/BADS_WS1718_class.csv")
 
 ################################################################################
-# Data exploration
+# DATA EXPLORATION
 
 fxns.fac  <- list(dist.check = dist.check, return.check = return.check)
 fxns.num  <- list(dist.check = dist.check, return.check = num.check)
@@ -69,22 +69,10 @@ p2 <- ggplot(data = price_disc, aes(x = bins, y = ReturnRate)) +
   theme(axis.text.x = element_text(angle = 90))
 p2
 
-# brand_disc  <- discrete.bin(brand_id$return.check, variable = "Total", 20)
-# brand_disc2 <- discrete.power(brand_id$return.check, 
-#                               variable = "Total", powerval = 2)
-# # check brand_disc return rates
-# p3 <- ggplot(data = brand_disc, aes(x = bins, y = ReturnRate)) + 
-#   geom_bar(stat = "identity") + 
-#   theme_minimal() +
-#   theme(panel.grid.minor = element_blank()) + 
-#   theme(panel.grid.major.x = element_blank()) +
-#   theme(axis.text.x = element_text(angle = 90))
-# p3
-
-# TODO: Organize brands by return rates
+# TODO: Organize brands by return rates (WOE)
 
 ################################################################################
-# Data cleaning & imputation
+# DATA CLEANING AND IMPUTATION
 
 # TODO: discretize price because otherwise it's too strong of a var in model
 
@@ -119,9 +107,6 @@ user_age  <- num.check(df.clean, "user_age")
 
 summary(df.clean)
 
-################################################################################
-# IMPUTATION
-
 # NA values
 df.clean$days_to_deliv[df.clean$days_to_deliv < 0]         <- NA
 df.clean$user_age[df.clean$user_age >= 116]                <- NA
@@ -141,9 +126,6 @@ df.final$user_title[is.na(df.final$user_title)]       <- samplefxn(
   df.final, "user_title", "sample")
 
 # TODO: DIFFERENT IMPUTATION METHODS GIVE WILDLY DIFFERENT RESULTS
-
-################################################################################
-# Final clean
 
 # additional EDA
 daydf     <- return.check(df.final, "order_day")

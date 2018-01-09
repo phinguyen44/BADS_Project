@@ -29,25 +29,12 @@ source("Scripts/Helpful.R")
 # MODEL CREATION (first pass)
 
 mod <- return ~ . - order_day - order_month + order_day*order_month
-# mod4 <- return ~ . + order_day*order_month
-# mod5 <- return ~ . - order_day - order_month + order_day*order_month - 
-#   days_to_deliv - days_from_open
-# mod6 <- return ~ . - order_day - order_month + order_day*order_month - 
-#   days_to_deliv
-# mod7 <- return ~ . - order_day - order_month + order_day*order_month - 
-#   days_from_open
-
-# allmods <- list(mod, mod2, mod3, mod4, mod5, mod6, mod7)
 
 # initial sample
 samplex    <- sample(1:nrow(df.final), 20000, replace = FALSE)
 testset    <- df.final[samplex, ]
 trainset   <- df.final[-samplex, ]
 trainset.x <- trainset %>% select(-return)
-
-# Build a GLM model(s)
-# final <- lapply(allmods, function(x) build.glm(x, trainset, testset, 1))
-# vieww <- lapply(final, function(x) `$`(x, ClassTable))
 
 final <- build.glm(mod, trainset, testset, alpha = 1)
 
@@ -72,38 +59,20 @@ FNR
 
 testset$returnProb <- final$Results[["prob"]]
 
-# TODO: separate models for user_title to handle class imbalance issues
-
 ################################################################################
 # CROSS-VALIDATION
 
 # TODO: cross-validation
 
 ################################################################################
-# Model evaluation
+# MODEL EVALUATION
 
-# ROC curve with penalty (determine optimal cutoff point)
-
-# TODO: Am I doing this right? or am I mixing up FPR / FNR penalties
-
-# penalties <- Results %>% 
-#   group_by(Class) %>% 
-#   summarize(averages = mean(item_price))
-# 
-# fp_pen <- penalties$averages[penalties$Class == "FP"]
-# fn_pen <- penalties$averages[penalties$Class == "FN"]
-# 
-# cost_fn <- round(0.5*(3 + 0.1*fn_pen))
-# cost_fp <- round(0.5*fp_pen)
-
-# find best cutoff
-graphics.off()
-roc_info <- ROCInfo(data = final$Results, predict = "prob", 
-                    actual = "actual", cost.fp = 5, cost.fn = 1)
-grid.draw(roc_info$plot)
+# TODO: Model evaluation
 
 ################################################################################
 # GENERATE PREDICTION (on class set)
+
+# TODO: if brand_id or item_id used, remember to convert those values
 
 # Clean class set
 df.test.c <- df.test %>% 
@@ -123,8 +92,8 @@ df.test.c <- df.test %>%
          order_day       = factor(weekdays(order_date)),
          order_month     = factor(months(order_date)))
 
-df.test.c$days_to_deliv[df.test.c$days_to_deliv < 0] <- NA
-df.test.c$user_age[df.test.c$user_age >= 116] <- NA
+df.test.c$days_to_deliv[df.test.c$days_to_deliv < 0]         <- NA
+df.test.c$user_age[df.test.c$user_age >= 116]                <- NA
 df.test.c$user_title[df.test.c$user_title == "not reported"] <- NA
 
 df.test.c$user_age[is.na(df.test.c$user_age)]           <- samplefxn(

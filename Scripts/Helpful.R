@@ -18,8 +18,8 @@
 # samplefxn() - imputation fxn (misnomer)
 # 
 # build.glm() - builds predictions and classification table for glm model
-# 
-# TODO: Create a general "cleaning" function
+# log.loss() - calculates log loss error
+# brier.score() - calculates brier score
 # 
 ################################################################################
 
@@ -212,3 +212,18 @@ build.glm <- function(mod, trainset, testset, alpha) {
 }
 
 # ROCINFO: http://ethen8181.github.io/machine-learning/unbalanced/unbalanced.html#interpretation-and-reporting
+
+log.loss <- function(act, pred) {
+    eps  <- 1e-15
+    nr   <- length(pred)
+    pred <- matrix(sapply(pred, function(x) max(eps,x)), nrow = nr) 
+    ll   <- sum(act*log(pred) + (1-act)*log(1-pred))
+    ll   <-  ll * -1/(length(act)) 
+    return(ll)
+}
+
+brier.score <- function(act, pred) {
+    nr    <- length(pred)
+    brier <- (1/nr) * sum((pred - act)^2)
+    return(brier)
+}

@@ -74,8 +74,6 @@ p2
 ################################################################################
 # DATA CLEANING AND IMPUTATION
 
-# TODO: discretize price because otherwise it's too strong of a var in model
-
 # TODO: Just a thought. Can days to deliv be included if a user would be shown
 # a message to prevent a purchase in the cart stage? Meaning before a purchase
 # is made?
@@ -97,16 +95,6 @@ df.clean <- df.train %>%
          order_day       = factor(weekdays(order_date)),
          order_month     = factor(months(order_date)))
 
-# additional EDA
-daydf   <- return.check(df.clean, "order_day")
-monthdf <- return.check(df.clean, "order_month")
-
-delivdays <- num.check(df.clean, "days_to_deliv")
-opendays  <- num.check(df.clean, "days_from_open")
-user_age  <- num.check(df.clean, "user_age")
-
-summary(df.clean)
-
 # NA values
 df.clean$days_to_deliv[df.clean$days_to_deliv < 0]         <- NA
 df.clean$user_age[df.clean$user_age >= 116]                <- NA
@@ -116,23 +104,24 @@ df.clean$user_title[df.clean$user_title == "not reported"] <- NA
 # df.final <- df.clean[complete.cases(df.clean), ]
 
 # Imputation via random sample for categorical and mean for numeric
+df.clean$user_age[is.na(df.clean$user_age)]           <- samplefxn(
+    df.clean, "user_age", "mean")
+df.clean$days_to_deliv[is.na(df.clean$days_to_deliv)] <- samplefxn(
+    df.clean, "days_to_deliv", "mean")
+df.clean$user_title[is.na(df.clean$user_title)]       <- samplefxn(
+    df.clean, "user_title", "sample")
+
 df.final <- df.clean
-
-df.final$user_age[is.na(df.final$user_age)]           <- samplefxn(
-  df.final, "user_age", "mean")
-df.final$days_to_deliv[is.na(df.final$days_to_deliv)] <- samplefxn(
-  df.final, "days_to_deliv", "mean")
-df.final$user_title[is.na(df.final$user_title)]       <- samplefxn(
-  df.final, "user_title", "sample")
-
-# TODO: DIFFERENT IMPUTATION METHODS GIVE WILDLY DIFFERENT RESULTS
 
 # additional EDA
 daydf     <- return.check(df.final, "order_day")
 monthdf   <- return.check(df.final, "order_month")
 
 delivdays <- num.check(df.final, "days_to_deliv")
+# TODO: eliminate cases where days days_to_deliv is negative. Also is days to delivery even relevant??
+opendays  <- num.check(df.final, "days_from_open")
 user_age  <- num.check(df.final, "user_age")
+# TODO: consider non-linear interaction of user_age? or splines?
 
 age_disc  <- discrete.bin(user_age, variable = "Var1", 5)
 
@@ -154,5 +143,6 @@ df.final <- df.final %>%
          item_price_d,
          return)
 
-keep <- c("df.train", "df.test", "df.final", "price_disc", "age_disc")
+keep <- c("df.train", "df.test", "df.clean", "df.final", 
+          "price_disc", "age_disc")
 rm(list = ls()[!(ls() %in% keep)])

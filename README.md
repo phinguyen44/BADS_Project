@@ -28,6 +28,7 @@ BADS WS17/18 project
 ### Predict
 
 1. Cross-validation techniques
+2. Figure out why the span of the predictive space is too narrow (only from 0.2 - 0.7)
 
 ### Evaluate
 

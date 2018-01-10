@@ -13,7 +13,7 @@ BADS WS17/18 project
 ### Prepare Data
 
 1. Data Imputation: [Imputation using MICE](https://datascienceplus.com/imputing-missing-data-with-r-mice-package/)
-2. Feature Selection: Consider creating a variable based on return rate (Weight of Evidence), or parse orders with same item (is it likely that a message will prevent their return?)
+2. Feature Selection: Consider creating a variable based on return rate (Weight of Evidence), identify orders with the same items
 3. Consider mixed interaction terms or power terms (for non-linear relationships) - *Is this necessary for non-regression-based models?*
 
 ### Build Model

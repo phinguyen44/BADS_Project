@@ -20,6 +20,8 @@
 # build.glm() - builds predictions and classification table for glm model
 # log.loss() - calculates log loss error
 # brier.score() - calculates brier score
+# cost.fxn() - calculates cost function as described in paper
+# rev.gain.fxn() - calculates revenue gain over case where no message is sent
 # 
 ################################################################################
 
@@ -226,4 +228,16 @@ brier.score <- function(act, pred) {
     nr    <- length(pred)
     brier <- (1/nr) * sum((pred - act)^2)
     return(brier)
+}
+
+rev.gain.fxn <- function(act, pred, cost) {
+    fp <- (1-act) * pred * (-0.5) * cost   # revenue lost from FP misclass
+    tp <- act * pred * 0.5 * (3+0.1*cost)  # revenue gain from TP class
+    return(sum(fp + tp))
+}
+
+cost.fxn <- function(act, pred, cost) {
+    fp <- (1-act) * pred * (-0.5) * cost           # rev lost from FP misclass
+    fn <- act * (1 - pred) * (-0.5) * (3+0.1*cost) # rev lost from FN misclass
+    return(sum(fp + fn))
 }

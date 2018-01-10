@@ -26,4 +26,4 @@
 ## Evaluation
 
 1. Log loss error or Brier score or custom penalty function
-2. Add thoughts on
+2. Add thoughts on the custom penalty function. Is it the right way to think about the problem? What about the one you've conceived? Don't forget to add the maths on it.

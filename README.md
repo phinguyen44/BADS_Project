@@ -31,8 +31,7 @@ BADS WS17/18 project
 
 ### Evaluate
 
-1. Log loss error or Brier score or custom penalty function
-2. Cost-sensitive learning
+1. Cost-sensitive learning (custom cost-function)
 
 ## Variables (what to change)
 

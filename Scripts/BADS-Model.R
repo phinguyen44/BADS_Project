@@ -36,26 +36,7 @@ testset    <- df.final[samplex, ]
 trainset   <- df.final[-samplex, ]
 trainset.x <- trainset %>% select(-return)
 
-final <- build.glm(mod, trainset, testset, alpha = 1)
-
-# View results
-p <- ggplot(data = final$Results, aes(prob, color = as.factor(actual))) + 
-  geom_density(size = 1) +
-  geom_vline(aes(xintercept = 0.5), color = "blue") + 
-  labs(title = "Training Set Predicted Score") + 
-  theme_minimal() +
-  theme(panel.grid.minor = element_blank()) + 
-  theme(panel.grid.major.x = element_blank())
-p
-
-final$ClassTable
-final$MCE
-
-FPR <- final$FPR
-FNR <- final$FNR
-
-FPR
-FNR
+final  <- build.glm(mod, trainset, testset, alpha = 1, platt.scaling = TRUE)
 
 testset$returnProb <- final$Results[["prob"]]
 
@@ -67,7 +48,35 @@ testset$returnProb <- final$Results[["prob"]]
 ################################################################################
 # MODEL EVALUATION
 
-# TODO: Model evaluation
+result <- performance.met(act = final$Results$actual, pred = final$Results$prob)
+result
+
+# View results
+p <- ggplot(data = final$Results, aes(prob, color = as.factor(actual))) + 
+    geom_density(size = 1) +
+    geom_vline(aes(xintercept = 0.5), color = "blue") + 
+    labs(title = "Training Set Predicted Score") + 
+    theme_minimal() +
+    theme(panel.grid.minor = element_blank()) + 
+    theme(panel.grid.major.x = element_blank())
+p
+
+# with platt scaling
+result2 <- performance.met(final$Results.Platt$actual, final$Results.Platt$prob)
+result2
+
+p2 <- ggplot(data = final$Results.Platt, aes(prob, color = as.factor(actual))) +
+    geom_density(size = 1) +
+    geom_vline(aes(xintercept = 0.5), color = "blue") + 
+    labs(title = "Training Set Predicted Score") + 
+    theme_minimal() +
+    theme(panel.grid.minor = element_blank()) + 
+    theme(panel.grid.major.x = element_blank())
+p2
+
+# reliability plots
+reliability.plot(final$Results$actual, final$Results$prob)
+reliability.plot(final$Results.Platt$actual, final$Results.Platt$prob)
 
 ################################################################################
 # GENERATE PREDICTION (on class set)

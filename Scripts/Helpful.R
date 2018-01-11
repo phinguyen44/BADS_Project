@@ -7,6 +7,7 @@
 # Description:
 # Helpful functions designed to aid in BADS project
 #
+# DATA EXPLORATION:
 # dist.check() - compares distribution of cat variables in training & test sets
 # return.check() - looks at return rates by category in training set
 # num.check() - looks at return rates for a numerical variable in training set 
@@ -16,17 +17,24 @@
 # assign.bins() - creates bins based off bins created in discrete.bins()
 # samplefxn() - imputation fxn (misnomer)
 # 
+# MODEL BUILDING:
 # build.glm() - builds predictions and classification table for glm model
-# 
 # reliability.plot() - diagram to assess how 'calibrated' a classifier is
 # platt() - platt scaling (performing logistic regression on the classifier output to calibrate model output)
-#
+# 
+# MODEL EVALUATION:
+# performance.met() - calculates basic classification table stuff
 # log.loss() - calculates log loss error
 # brier.score() - calculates brier score
 # cost.fxn() - calculates cost function as described in paper
 # rev.gain.fxn() - calculates revenue gain over case where no message is sent
 # 
+# TODO: ROCINFO: http://ethen8181.github.io/machine-learning/unbalanced/unbalanced.html#interpretation-and-reporting - for imbalanced cost functions
+# 
 ################################################################################
+
+################################################################################
+# DATA EXPLORATION
 
 # check distribution of categorical variables (and how they might differ)
 dist.check <- function(df.train, var) {
@@ -170,10 +178,13 @@ samplefxn <- function(df, var, type) {
     return(values)
 }
 
+################################################################################
+# MODEL BUILDING
+
 # build glm model (with new platt scale feature!)
-build.glm <- function(mod, trainset, testset, alpha, platt = FALSE) {
+build.glm <- function(mod, trainset, testset, alpha, platt.scaling = FALSE) {
     
-    if (platt) {
+    if (platt.scaling) {
         trainset.n  <- trainset
         samplecalib <- sample(1:nrow(trainset.n), 10000, replace = FALSE)
         trainset    <- trainset.n[-samplecalib, ]
@@ -194,53 +205,24 @@ build.glm <- function(mod, trainset, testset, alpha, platt = FALSE) {
     test  <- data.frame(pred, testset$return, round(pred))
     names(test) <- c("prob", "actual", "result")
     
-    # Check performance
-    check1  <- table(predicted = test[, 3], actual = testset$return)
-    mce1    <- 1 - sum(diag(check1)) / sum(check1)
-    logloss <- log.loss(test$actual, test$prob)
-    
     # Perform platt scaling
-    if (platt) {
+    if (platt.scaling) {
         # Make prediction
         new.xc  <- model.matrix(mod, data = calibset)
         pred.c  <- predict(mod1, newx = new.xc, s="lambda.1se", type="response")
         test.c  <- data.frame(pred.c, calibset$return, round(pred.c))
         names(test.c) <- c("prob", "actual", "result")
         
-        # Platt scaling
-        new.pred = platt(test.c$actual, test.c$prob)
-        
-        # Check performance
-        check1.c  <- table(predicted=round(new.pred), actual=calibset$return)
-        mce1.c    <- 1 - sum(diag(check1.c)) / sum(check1.c)
-        logloss.c <- log.loss(test.c$actual, new.pred)
+        # Predictions after platt scaling
+        new.pred    <- platt(test.c$actual, test.c$prob)
+        test.c$prob <- new.pred
+    
     }
     
-    # GET FPR / FNR
-    test$Class <- with(data = test, ifelse(
-    actual == result & actual == 1, "TP", ifelse(
-        actual == result & actual == 0, "TN", ifelse(
-            actual != result & actual == 1, "FN", "FP")
-        )
-    ) 
-    )
+    final <- list(mod = mod1, Coef = coefff, Results = test)
+    if (platt.scaling) final[["Results.Platt"]] <- test.c
     
-    test <- test %>% 
-    bind_cols(testset) %>% 
-    select(prob, actual, result, Class)
-    
-    FPR <- test %>% 
-    filter(actual == 0) %>% 
-    summarize(FPR = sum(result) / n()) %>% 
-    as.numeric()
-    
-    FNR <- test %>% 
-    filter(actual == 1) %>% 
-    summarize(FNR = (n() - sum(result)) / n()) %>% 
-    as.numeric()
-    
-    return(list(mod = mod1, Coef = coefff, Results = test,
-              ClassTable = check1, FPR = FPR, FNR = FNR, MCE = mce1))
+    return(final)
 }
 
 reliability.plot <- function(act, pred, bins = 10) {
@@ -289,12 +271,48 @@ platt <- function(act, pred) {
     return(results)
 }
 
-# ROCINFO: http://ethen8181.github.io/machine-learning/unbalanced/unbalanced.html#interpretation-and-reporting
+################################################################################
+# MODEL EVALUATION
+
+performance.met <- function(act, pred) {
+    # Check performance
+    logloss <- log.loss(act, pred)
+    
+    # Convert predicted values to 1/0 for classification table
+    pred    <- round(pred)
+    check1  <- table(predicted = pred, actual = act)
+    mce1    <- 1 - sum(diag(check1)) / sum(check1)
+    
+    # GET FPR / FNR
+    test <- data.frame(act = act, pred = pred)
+    test$Class <- with(data = test, ifelse(
+        act == pred & act == 1, "TP", ifelse(
+            act == pred & act == 0, "TN", ifelse(
+                act != pred & act == 1, "FN", "FP")
+            )
+        ) 
+    )
+    
+    FPR <- test %>% 
+        filter(act == 0) %>% 
+        summarize(FPR = sum(pred) / n()) %>% 
+        as.numeric()
+    
+    FNR <- test %>% 
+        filter(act == 1) %>% 
+        summarize(FNR = (n() - sum(pred)) / n()) %>% 
+        as.numeric()
+    
+    final <- list(ClassTable = check1, FPR = FPR, FNR = FNR, 
+                  MCE = mce1, LogLoss = logloss)
+    return(final)
+}
 
 log.loss <- function(act, pred) {
     eps  <- 1e-15
     nr   <- length(pred)
     pred <- matrix(sapply(pred, function(x) max(eps,x)), nrow = nr) 
+    pred <- matrix(sapply(pred, function(x) min(1-eps,x)), nrow = nr)
     ll   <- sum(act*log(pred) + (1-act)*log(1-pred))
     ll   <-  ll * -1/(length(act)) 
     return(ll)

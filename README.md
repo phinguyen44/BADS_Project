@@ -32,7 +32,7 @@ BADS WS17/18 project
 
 ### Evaluate
 
-1. Cost-sensitive learning (custom cost-function)
+1. Cost-sensitive learning or a [custom cost-function](http://willwolf.io/2015/11/18/so-you-want-to-implement-a-custom-loss-function/)
 
 ## Variables (what to change)
 

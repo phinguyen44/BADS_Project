@@ -22,8 +22,8 @@ BADS WS17/18 project
     - Random Forests w/ Platt Scaling (can natively handle categorical variables)
     - ANN or [Mxnet](http://mxnet.incubator.apache.org/tutorials/r/fiveMinutesNeuralNetwork.html) (can create custom loss functions)
     - [Gradient Boosted Trees](http://xgboost.readthedocs.io/en/latest/model.html#why-introduce-the-general-principle) (xgboost)
-2. **Parallelization**: Models, Metaparameter tuning, cross-validation
-3. [Platt scaling](http://danielnee.com/2014/10/calibrating-classifier-probabilties/) to convert outputs into a probabilistic distribution. Additional resource [here](https://www.analyticsvidhya.com/blog/2016/07/platt-scaling-isotonic-regression-minimize-logloss-error/)
+2. **Parallelization**: metaparameter tuning, cross-validation
+3. [Platt scaling](https://www.analyticsvidhya.com/blog/2016/07/platt-scaling-isotonic-regression-minimize-logloss-error/) to convert outputs into a probabilistic distribution.
 
 ### Predict
 

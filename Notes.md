@@ -3,6 +3,10 @@
 ## Data Preparation
 
 1. Which variables did we think were relevant?
+    - Demographic information (gender, age, location, number of prior purchases made)
+    - Order information (basket size, number of similar items, total cost, order day / month)
+    - Item-level information (item size / misfit, color, brand, cost)
+    - Other, that we can't use (peer reviews, shopping cart experience, sales, competition)
 2. How did we transform variables? Discretization? WOE? Power-terms, mixed interaction terms for non-linear relationships?
 3. How did we handle data imputation? Any cases where imputation yielded different results?
 4. Orders with same item (e.g. "It looks like you have two of the same item in the cart. Do you want this?")

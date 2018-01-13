@@ -19,9 +19,8 @@ BADS WS17/18 project
 ### Build Model
 
 1. **Models to try**: 
-    - Random Forests w/ Platt Scaling (can natively handle categorical variables)
     - ANN or [Mxnet](http://mxnet.incubator.apache.org/tutorials/r/fiveMinutesNeuralNetwork.html) (can create custom loss functions)
-    - [Gradient Boosted Trees](http://xgboost.readthedocs.io/en/latest/model.html#why-introduce-the-general-principle) (xgboost)
+    - [Gradient Boosted Trees](http://xgboost.readthedocs.io/en/latest/model.html#why-introduce-the-general-principle) (xgboost) w/ Platt Scaling
 2. **Parallelization**: metaparameter tuning, cross-validation
 3. [Platt scaling](https://www.analyticsvidhya.com/blog/2016/07/platt-scaling-isotonic-regression-minimize-logloss-error/) to convert outputs into a probabilistic distribution.
 

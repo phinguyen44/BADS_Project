@@ -22,6 +22,7 @@
     - [Gradient Boosted Trees](http://xgboost.readthedocs.io/en/latest/model.html#why-introduce-the-general-principle) (xgboost)
 2. **Parallelization**: Models, Metaparameter tuning, cross-validation
 3. Platt scaling to convert outputs into a probabilistic distribution
+4. As an additional note for potential model approaches: constructing "user profiles" - this mimics what is done in a real-world scenario
 
 ## Prediction
 

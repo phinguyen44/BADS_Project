@@ -69,8 +69,6 @@ p2 <- ggplot(data = price_disc, aes(x = bins, y = ReturnRate)) +
   theme(axis.text.x = element_text(angle = 90))
 p2
 
-# TODO: Organize brands by return rates (WOE)
-
 ################################################################################
 # DATA CLEANING AND IMPUTATION
 
@@ -94,6 +92,13 @@ df.clean <- df.train %>%
          days_from_open  = as.numeric(order_date - user_reg_date),
          order_day       = factor(weekdays(order_date)),
          order_month     = factor(months(order_date)))
+
+# TODO: THIS BREAKS....
+#          item_id_WOE     = WOE(df.train, "item_id"),
+#          item_brand_WOE  = WOE(df.train, "item_brand_id"),
+#          item_size_WOE   = WOE(df.train, "item_size"),
+#          item_color_WOE  = WOE(df.train, "item_color"),
+#          user_id_WOE     = WOE(df.train, "user_id"))
 
 # NA values
 df.clean$days_to_deliv[df.clean$days_to_deliv < 0]         <- NA

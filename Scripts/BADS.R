@@ -27,7 +27,7 @@ source("Scripts/Helpful.R")
 
 # Read data
 df.train <- read.csv("Data/BADS_WS1718_known.csv")
-df.test  <- read.csv("Data/BADS_WS1718_class.csv")
+df.test  <- read.csv("Data/BADS_WS1718_class_20180115.csv")
 
 ################################################################################
 # DATA EXPLORATION
@@ -77,10 +77,9 @@ p2
 # is made?
 
 df.clean <- df.train %>% 
-  rename(user_birth_date = user_dob,
-         item_brand_id   = brand_id) %>% 
+  rename(user_birth_date = user_dob) %>% 
   mutate(item_id         = factor(item_id),
-         item_brand_id   = factor(item_brand_id),
+         brand_id        = factor(brand_id),
          user_id         = factor(user_id),
          user_birth_date = ymd(user_birth_date),
          user_reg_date   = ymd(user_reg_date),
@@ -92,13 +91,6 @@ df.clean <- df.train %>%
          days_from_open  = as.numeric(order_date - user_reg_date),
          order_day       = factor(weekdays(order_date)),
          order_month     = factor(months(order_date)))
-
-# TODO: THIS BREAKS....
-#          item_id_WOE     = WOE(df.train, "item_id"),
-#          item_brand_WOE  = WOE(df.train, "item_brand_id"),
-#          item_size_WOE   = WOE(df.train, "item_size"),
-#          item_color_WOE  = WOE(df.train, "item_color"),
-#          user_id_WOE     = WOE(df.train, "user_id"))
 
 # NA values
 df.clean$days_to_deliv[df.clean$days_to_deliv < 0]         <- NA
@@ -123,7 +115,6 @@ daydf     <- return.check(df.final, "order_day")
 monthdf   <- return.check(df.final, "order_month")
 
 delivdays <- num.check(df.final, "days_to_deliv")
-# TODO: eliminate cases where days days_to_deliv is negative. Also is days to delivery even relevant??
 opendays  <- num.check(df.final, "days_from_open")
 user_age  <- num.check(df.final, "user_age")
 # TODO: consider non-linear interaction of user_age? or splines?

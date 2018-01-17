@@ -41,11 +41,6 @@ final  <- build.glm(mod, trainset, testset, alpha = 1, platt.scaling = TRUE)
 testset$returnProb <- final$Results[["prob"]]
 
 ################################################################################
-# CROSS-VALIDATION
-
-# TODO: cross-validation
-
-################################################################################
 # MODEL EVALUATION
 
 result <- performance.met(act = final$Results$actual, pred = final$Results$prob)
@@ -81,7 +76,7 @@ reliability.plot(final$Results.Platt$actual, final$Results.Platt$prob)
 ################################################################################
 # GENERATE PREDICTION (on class set)
 
-# TODO: if brand_id or item_id used, remember to convert those values
+# TODO: if brand_id or item_id used or item_size, remember to convert those values
 
 # Clean class set
 df.test.c <- df.test %>% 
